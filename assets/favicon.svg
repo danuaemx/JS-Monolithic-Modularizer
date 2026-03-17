@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Modularizer favicon">
+  <defs>
+    <linearGradient id="aeroBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="55%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#22c55e"/>
+    </linearGradient>
+    <radialGradient id="shine" cx="32" cy="14" r="28" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.92"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#aeroBg)"/>
+  <rect x="4" y="4" width="56" height="56" rx="16" fill="none" stroke="#ffffff" stroke-opacity="0.65" stroke-width="1.4"/>
+  <ellipse cx="32" cy="15" rx="24" ry="11" fill="url(#shine)"/>
+
+  <circle cx="17" cy="20" r="2.3" fill="#ffffff" fill-opacity="0.7"/>
+  <circle cx="48" cy="23" r="1.9" fill="#e0f2fe" fill-opacity="0.9"/>
+
+  <path d="M25 24L17 32L25 40" fill="none" stroke="#ffffff" stroke-width="3.3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M39 24L47 32L39 40" fill="none" stroke="#ffffff" stroke-width="3.3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M35 22L29 42" fill="none" stroke="#ecfeff" stroke-width="3" stroke-linecap="round"/>
+</svg>
