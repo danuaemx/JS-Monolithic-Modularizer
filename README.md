@@ -2,7 +2,7 @@
 
 A browser-based tool that takes a **single monolithic `.js` file** and generates a modular ES Module structure (`index.js`, `core`, `features`, `utils`) as a downloadable ZIP.
 
-This project is fully client-side and now works with **local vendor libraries** (no cloud CDN required at runtime).
+This project uses local support libraries from `vendor/`: Tailwind CSS, Acorn, acorn-walk, and JSZip.
 
 ---
 
