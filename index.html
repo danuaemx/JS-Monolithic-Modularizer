@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS Monolithic Modularizer</title>
+    <link rel="stylesheet" href="./assets/css/styles.css">
+    <!-- Tailwind CSS for a clean design -->
+    <script src="./vendor/tailwindcss.js"></script>
+    <!-- Libraries for parsing and zipping -->
+    <!-- Acorn: A robust JavaScript parser to generate the AST -->
+    <script src="./vendor/acorn.min.js"></script>
+    <!-- Acorn Walk: Utility to walk the AST easily -->
+    <script src="./vendor/acorn-walk.min.js"></script>
+    <!-- JSZip: Library to create .zip files in the browser -->
+    <script src="./vendor/jszip.min.js"></script>
+</head>
+<body class="min-h-screen relative overflow-x-hidden bg-gradient-to-b from-sky-200 via-cyan-100 to-emerald-100 text-slate-800">
+
+    <div class="pointer-events-none fixed inset-0 overflow-hidden">
+        <div class="absolute -top-20 -left-12 h-72 w-72 rounded-full bg-white/50 blur-3xl"></div>
+        <div class="absolute top-12 right-0 h-80 w-80 rounded-full bg-sky-300/40 blur-3xl"></div>
+        <div class="absolute bottom-10 left-1/4 h-64 w-64 rounded-full bg-emerald-300/30 blur-3xl"></div>
+        <div class="absolute inset-x-0 bottom-0 h-52 bg-gradient-to-t from-emerald-300/40 to-transparent"></div>
+
+        <div class="aero-bubble absolute left-8 top-32 h-6 w-6 rounded-full bg-white/70"></div>
+        <div class="aero-bubble delay-1 absolute right-16 top-72 h-4 w-4 rounded-full bg-white/80"></div>
+        <div class="aero-bubble delay-2 absolute left-1/3 bottom-20 h-8 w-8 rounded-full bg-cyan-100/80"></div>
+        <div class="aero-bubble delay-3 absolute right-1/4 bottom-36 h-5 w-5 rounded-full bg-emerald-100/80"></div>
+        <div class="aero-spark absolute left-1/4 top-28 h-2 w-2 rounded-full bg-white/80"></div>
+        <div class="aero-spark absolute right-1/3 top-44 h-1.5 w-1.5 rounded-full bg-cyan-50/90" style="animation-delay: 1s"></div>
+        <div class="aero-spark absolute right-20 bottom-44 h-2 w-2 rounded-full bg-white/85" style="animation-delay: 2s"></div>
+        <span class="aero-fish absolute left-16 bottom-24 text-2xl opacity-70">🐠</span>
+        <span class="aero-fish absolute right-24 bottom-20 text-2xl opacity-65" style="animation-delay: 2.3s;">🐟</span>
+    </div>
+
+    <div class="relative z-10 container mx-auto p-4 md:p-8 max-w-5xl">
+        <header class="text-center mb-8 relative">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-950 drop-shadow-sm" style="text-shadow: 0 2px 0 rgba(255,255,255,0.95), 0 12px 20px rgba(14,116,144,0.25);" data-lang-key="title">JS Monolithic Modularizer</h1>
+            <p class="text-md text-slate-800 mt-2" data-lang-key="subtitle">Upload your monolithic script, and we'll convert it into a detailed module structure.</p>
+            <div class="absolute top-0 right-0">
+                <select id="language-switcher" class="aero-input bg-white/90 backdrop-blur rounded-xl py-2 px-3 text-sm text-slate-800 shadow-sm font-semibold">
+                    <option value="en">English</option>
+                    <option value="es">Español</option>
+                </select>
+            </div>
+        </header>
+
+        <main class="aero-surface aero-main bg-white/70 backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-white/90 shadow-2xl shadow-cyan-200/70">
+            <div>
+                <label for="file-input" class="block text-lg font-semibold mb-2 text-slate-900" data-lang-key="upload_label">Upload your .js file here:</label>
+                <p class="text-xs text-slate-800 mb-2 font-medium" data-lang-key="upload_input_hint">Input file: upload one monolithic .js source file.</p>
+                <div id="drop-zone" class="mt-1 flex justify-center items-center px-6 pt-5 pb-6 border-2 border-sky-100 border-dashed rounded-2xl min-h-[190px] bg-white/85">
+                    <!-- Initial State -->
+                    <div id="drop-zone-initial" class="space-y-1 text-center w-full">
+                        <svg class="mx-auto h-12 w-12 text-sky-600" stroke="currentColor" fill="none" viewBox="0 0 24 24" aria-hidden="true" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14 2H7a2 2 0 00-2 2v16a2 2 0 002 2h10a2 2 0 002-2V7l-5-5z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14 2v5h5"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 13l-2 2 2 2"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14 13l2 2-2 2"></path>
+                        </svg>
+                        <div class="flex text-sm text-slate-800 justify-center font-medium">
+                            <label for="file-input" class="relative cursor-pointer bg-white rounded-xl px-3 py-1 font-semibold text-sky-800 hover:text-sky-700 border border-sky-100 shadow-sm focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-sky-400">
+                                <span data-lang-key="upload_action">Upload a file</span>
+                                <input id="file-input" name="file-input" type="file" class="sr-only" accept=".js,application/javascript">
+                            </label>
+                            <p class="pl-1" data-lang-key="upload_drag">or drag and drop</p>
+                        </div>
+                        <p class="text-xs text-slate-800 pt-1 font-medium" id="file-name-display"></p>
+                    </div>
+
+                    <!-- Uploaded State -->
+                    <div id="drop-zone-uploaded" class="hidden text-center">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <p class="mt-2 font-semibold text-slate-900" id="uploaded-file-name"></p>
+                        <p class="text-sm text-slate-800" data-lang-key="upload_success_desc">File ready to be processed.</p>
+                        <label for="file-input" class="mt-4 inline-block text-sm font-semibold text-sky-800 hover:text-sky-700 cursor-pointer" data-lang-key="upload_replace">Change file</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="aero-surface aero-card mt-6 p-4 md:p-5 rounded-2xl border border-white/90 bg-white/72">
+                <label for="max-functions" class="block text-sm font-semibold text-slate-900" data-lang-key="max_functions_label">Max functions per feature cluster:</label>
+                <input type="number" id="max-functions" value="10" class="aero-input mt-1 block w-48 p-2 rounded-xl shadow-sm focus:ring-2 focus:ring-sky-400 focus:border-sky-400 sm:text-sm">
+                <p class="mt-1 text-xs text-slate-800" data-lang-key="max_functions_desc">Larger feature groups will be split into more folders.</p>
+            </div>
+
+            <div class="aero-surface aero-card mt-4 p-4 md:p-5 rounded-2xl border border-white/90 bg-white/72">
+                <h2 class="text-base md:text-lg font-semibold text-slate-900" data-lang-key="output_customization_title">Customize output</h2>
+                <p class="text-xs md:text-sm mt-1 text-slate-800" data-lang-key="output_customization_desc">Control naming, folder structure and ZIP export.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                        <label for="zip-name" class="block text-sm font-semibold text-slate-900" data-lang-key="zip_name_label">ZIP file name</label>
+                        <input type="text" id="zip-name" value="modularized-script" data-lang-placeholder="zip_name_placeholder" class="aero-input mt-1 block w-full p-2 rounded-xl shadow-sm focus:ring-2 focus:ring-sky-400 focus:border-sky-400 sm:text-sm" placeholder="modularized-script">
+                        <p class="mt-1 text-xs text-slate-800" data-lang-key="zip_name_desc">Name of the downloadable ZIP file.</p>
+                    </div>
+
+                    <div>
+                        <label for="output-root" class="block text-sm font-semibold text-slate-900" data-lang-key="output_root_label">Output root folder</label>
+                        <input type="text" id="output-root" value="src" data-lang-placeholder="output_root_placeholder" class="aero-input mt-1 block w-full p-2 rounded-xl shadow-sm focus:ring-2 focus:ring-sky-400 focus:border-sky-400 sm:text-sm" placeholder="src">
+                        <p class="mt-1 text-xs text-slate-800" data-lang-key="output_root_desc">Base directory where modules will be generated.</p>
+                    </div>
+
+                    <div>
+                        <label for="features-dir" class="block text-sm font-semibold text-slate-900" data-lang-key="features_dir_label">Features folder</label>
+                        <input type="text" id="features-dir" value="features" data-lang-placeholder="features_dir_placeholder" class="aero-input mt-1 block w-full p-2 rounded-xl shadow-sm focus:ring-2 focus:ring-sky-400 focus:border-sky-400 sm:text-sm" placeholder="features">
+                        <p class="mt-1 text-xs text-slate-800" data-lang-key="features_dir_desc">Directory for generated feature modules.</p>
+                    </div>
+
+                    <div>
+                        <label for="core-dir" class="block text-sm font-semibold text-slate-900" data-lang-key="core_dir_label">Core folder</label>
+                        <input type="text" id="core-dir" value="core" data-lang-placeholder="core_dir_placeholder" class="aero-input mt-1 block w-full p-2 rounded-xl shadow-sm focus:ring-2 focus:ring-sky-400 focus:border-sky-400 sm:text-sm" placeholder="core">
+                        <p class="mt-1 text-xs text-slate-800" data-lang-key="core_dir_desc">Directory for runtime and class modules.</p>
+                    </div>
+
+                    <div>
+                        <label for="file-name-style" class="block text-sm font-semibold text-slate-900" data-lang-key="file_name_style_label">File naming style</label>
+                        <select id="file-name-style" class="aero-input mt-1 block w-full p-2 rounded-xl shadow-sm focus:ring-2 focus:ring-sky-400 focus:border-sky-400 sm:text-sm">
+                            <option value="kebab" data-lang-key="naming_kebab">kebab-case</option>
+                            <option value="snake" data-lang-key="naming_snake">snake_case</option>
+                            <option value="camel" data-lang-key="naming_camel">camelCase</option>
+                        </select>
+                        <p class="mt-1 text-xs text-slate-800" data-lang-key="file_name_style_desc">How generated module files are named.</p>
+                    </div>
+
+                    <div>
+                        <label for="hierarchy-threshold" class="block text-sm font-semibold text-slate-900" data-lang-key="hierarchy_threshold_label">Hierarchy threshold</label>
+                        <input type="number" id="hierarchy-threshold" min="0" value="2" class="aero-input mt-1 block w-full p-2 rounded-xl shadow-sm focus:ring-2 focus:ring-sky-400 focus:border-sky-400 sm:text-sm">
+                        <p class="mt-1 text-xs text-slate-800" data-lang-key="hierarchy_threshold_desc">0 disables nested feature folders. 2+ enables hierarchical grouping.</p>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="mt-6 text-center">
+                <button id="processButton" class="aero-button bg-gradient-to-r from-sky-500 via-cyan-500 to-emerald-500 text-white font-bold py-3 px-8 rounded-2xl hover:from-sky-600 hover:to-emerald-600 focus:outline-none focus-within:ring-4 focus-within:ring-sky-300 transition-transform transform hover:scale-105 duration-300 ease-in-out shadow-xl shadow-cyan-300/60">
+                    <span data-lang-key="button_text">Analyze & Modularize</span>
+                </button>
+            </div>
+
+            <div class="mt-6">
+                <h3 class="text-sm font-semibold text-slate-900" data-lang-key="generated_output_title">Generated output (folders and files)</h3>
+                <p class="text-xs text-slate-800 mt-1" data-lang-key="generated_output_desc">After processing, this area shows generated folders/files. ZIP is downloaded only when you click the button.</p>
+                <p class="text-xs text-amber-700 mt-1 font-semibold" data-lang-key="server_required_note">Important: modularized files use ES modules and do not run directly from file://. Use a local or remote web server.</p>
+            </div>
+
+            <div id="output" class="aero-surface aero-card mt-6 p-4 bg-white/80 backdrop-blur rounded-2xl border border-white/90 min-h-[50px] text-center shadow-sm">
+                <p class="text-slate-800" data-lang-key="output_placeholder">Results will appear here...</p>
+            </div>
+        </main>
+
+        <footer class="text-center mt-8 text-sm text-slate-800">
+            <p data-lang-key="footer_text">&copy; 2024 Demo Tool. Built with Acorn, JSZip & Tailwind CSS.</p>
+        </footer>
+    </div>
+
+    <script src="./src/index.js" type="module"></script>
+</body>
+</html>
+
